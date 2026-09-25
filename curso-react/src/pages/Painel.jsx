@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 
-    function Painel() {
+function Painel() {
     const [modal, setModal] = useState(false) //bollean
     const [users, setUsers] = useState([]) //vetor
     const [user, setUser] = useState({}) //objeto
@@ -10,36 +10,54 @@ import { supabase } from '../../utils/supabase';
     const [index, setIndex] = useState(-1)
 
     const [spiner, setSpiner] = useState(false)
-    const [msg, SetMsg] = useState ("")
+    const [msg, SetMsg] = useState("")
+
+    useEffect(
+        () => {
+            const logged = JSON.parse(localStorage.getItem('logged'))
+            setLogged(logged)
+        },
+        []
+    );
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('logged'))
-        setLogged(user)
+        loadUsers()
     }, []);
 
-    useEffect(() => {
-        const usersTemp = JSON.parse(localStorage.getItem('users')) || []
-        if (usersTemp) setUsers(usersTemp)
-    }, [])
-
- async function loadUsers(){
-    const {data, error} = supabase.from('profile').select('*')
-    if(error){
-        SetMsg(error.message)
+    //READ - LER
+    async function loadUsers() {
+        const { data, error } = await supabase.from('profiles').select('*')
+        if (error) {
+            setMsg(error.message)
             return;
-        }}
+        }
 
-    function deletUser(index) {
-        const newUsers = users.filter((u, i) => {
-            return i != index
-            
-        })
-        localStorage.setItem('users', JSON.stringify(newUsers))
-        setUsers(newUsers)
- 
+        setUsers(data)
     }
 
-    function updateUser(indice) {
+    async function editUser() {
+        setSpiner(true)
+        const { data, error } = await supabase
+            .from('profiles')
+            .update(user)
+            .eq('id', index);
+
+        if (error) {
+            setMsg(error.message)
+            setSpiner(false)
+            return;
+        }
+
+        setMsg("Usuario editado")
+        setSpiner(false)
+        loadUsers()
+    }
+
+    function deleteUser(index) {
+
+    }
+
+    function updateUser(user) {
         setModal(true)
         setUser(user)
         setIndex(user.id)
@@ -49,33 +67,44 @@ import { supabase } from '../../utils/supabase';
         setSpiner(true)
         const { data: authData, error: authError } = await supabase.auth.signUp({
             email: user.email,
-            password: user.senha
-    });
+            password: user.password
+        });
 
-    if(authError) {
-        console.error(authError)
-        SetMsg(authError)
+        if (authError) {
+            setMsg(authError.message)
+            setSpiner(false)
+            return;
+        }
+
+        if (!authData) {
+            setMsg("Não foi possível cadastrar, verifique a internet")
+            setSpiner(false)
+            return;
+        }
+
+        const {
+            data: loginData, error: loginError
+        } = await supabase.auth.signInWithPassword({
+            email: user.email,
+            password: user.password
+        });
+
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                ...user,
+                user_id: loginData.user.id
+            });
+
+        if (profileError) {
+            setMsg(profileError.message);
+            setSpiner(false)
+            return;
+        }
+
+        loadUsers()
         setSpiner(false)
-        return;
-    }
-
-    if (!authData){
-        SetMsg("Não foi possivel cadastrar, verifique a internet")
-        setSpiner(falso)
-        return;
-    }
-
-    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: user.senha
-    });
-
-        setUsers(newUsers)
-        localStorage.setItem('users', JSON.stringify(newUsers))
-        setUser({})
-        setModal(false)
-        setIndex(-1)
-        setIsEdit(false)
+        setMsg('Usuário cadastro com sucesso')
     }
 
     return (
@@ -93,24 +122,29 @@ import { supabase } from '../../utils/supabase';
 
                         <a onClick={() => {
                             setModal(false)
-                            setIsEdit(true)
+                            setIsEdit(false)
                             setUser({})
+                            setIndex(-1)
                         }}
                             className="bg-prices absolute top-0 right-0 px-2 rounded-full cursor-pointer" > X </a>
 
                         <h2>Cadastre um novo usuário</h2>
                         <p>Preencha as informações abaixo</p>
 
-                        {isEdit? (
+                        {isEdit ? (
                             <form className="flex flex-col">
                                 Nome:
                                 <input value={user.nome} onChange={(e) => setUser({ ...user, nome: e.target.value })} type="text" placeholder="Digite seu nome completo" />
 
-                                Email:
-                                <input value={user.email} onChange={(e) => setUser({ ...user, email: e.target.value })} type="email" placeholder="Digite o seu melhor email" />
+                                {index == -1 && (
+                                    <>
+                                        Email:
+                                        <input value={user.email} onChange={(e) => setUser({ ...user, email: e.target.value })} type="email" placeholder="Digite o seu melhor email" />
 
-                                Senha:
-                                <input onChange={(e) => setUser({ ...user, senha: e.target.value })} type="password" placeholder="Letra maiúscula e números" />
+                                        Senha:
+                                        <input onChange={(e) => setUser({ ...user, password: e.target.value })} type="password" placeholder="Letra maiúscula e números" />
+                                    </>
+                                )}
 
                                 Data de nascimento:
                                 <input value={user.date} onChange={(e) => setUser({ ...user, nascimento: e.target.value })} type="date" />
@@ -122,7 +156,20 @@ import { supabase } from '../../utils/supabase';
                                     <a onClick={() => setIsEdit(false)} className="mt-5 text-white text-center rounded-md py-2 bg-red-500">Cancelar</a>
                                 )}
 
-                                <a onClick={handleRegister} className="mt-5 bg-primary text-white text-center rounded-md py-2">Salvar</a>
+                                <a onClick={
+                                    () => {
+                                        if (index == -1)
+                                            handleRegister()
+                                        else
+                                            editUser()
+                                    }
+                                }
+                                    className="mt-5 bg-primary text-white text-center rounded-md py-2"
+                                >
+                                    {spiner ? '...' : 'Salvar'}
+                                </a>
+
+                                {msg}
                             </form>) : //else 
                             (
                                 <>
@@ -142,11 +189,11 @@ import { supabase } from '../../utils/supabase';
 
             <table>
                 <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Email</th>
-                    <th>Ações</th>
-                </tr>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Ações</th>
+                    </tr>
                 </thead>
                 <tbody id="listUsers" className="font-secundary">
                     {users.map((u, i) => (
@@ -164,5 +211,6 @@ import { supabase } from '../../utils/supabase';
             </table>
 
         </div>
-    )}
+    )
+}
 export default Painel;
