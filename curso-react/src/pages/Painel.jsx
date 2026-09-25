@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router';
+import { supabase } from '../../utils/supabase';
 
-function Painel() {
+    function Painel() {
     const [modal, setModal] = useState(false) //bollean
     const [users, setUsers] = useState([]) //vetor
     const [user, setUser] = useState({}) //objeto
     const [logged, setLogged] = useState({})
     const [isEdit, setIsEdit] = useState(false)
     const [index, setIndex] = useState(-1)
+
+    const [spiner, setSpiner] = useState(false)
+    const [msg, SetMsg] = useState ("")
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('logged'))
@@ -19,6 +22,13 @@ function Painel() {
         if (usersTemp) setUsers(usersTemp)
     }, [])
 
+ async function loadUsers(){
+    const {data, error} = supabase.from('profile').select('*')
+    if(error){
+        SetMsg(error.message)
+            return;
+        }}
+
     function deletUser(index) {
         const newUsers = users.filter((u, i) => {
             return i != index
@@ -29,21 +39,36 @@ function Painel() {
  
     }
 
-    function updateUser(i) {
+    function updateUser(indice) {
         setModal(true)
-        setUser(users[i])
-        setIndex(i)
-        setIsEdit(false)
+        setUser(user)
+        setIndex(user.id)
     }
 
-    function handleRegister() {
-        let newUsers = []
-        if (index != -1) {
-            newUsers = [...users]
-            newUsers[index] = user
-        } else {
-            newUsers = [...users, user]
-        }
+    async function handleRegister() {
+        setSpiner(true)
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: user.email,
+            password: user.senha
+    });
+
+    if(authError) {
+        console.error(authError)
+        SetMsg(authError)
+        setSpiner(false)
+        return;
+    }
+
+    if (!authData){
+        SetMsg("Não foi possivel cadastrar, verifique a internet")
+        setSpiner(falso)
+        return;
+    }
+
+    const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: user.senha
+    });
 
         setUsers(newUsers)
         localStorage.setItem('users', JSON.stringify(newUsers))
@@ -54,8 +79,9 @@ function Painel() {
     }
 
     return (
+
         <div>
-            <h3>Bem vindo, {logged?.nome}</h3>
+            <h3>Bem Vindo {logged?.nome} !</h3>
 
             {modal && (
                 <div
@@ -89,6 +115,9 @@ function Painel() {
                                 Data de nascimento:
                                 <input value={user.date} onChange={(e) => setUser({ ...user, nascimento: e.target.value })} type="date" />
 
+                                CPF:
+                                <input value={user.cpf} onChange={(e) => setUser({ ...user, cpf: e.target.value })} type="cpf" />
+
                                 {index != -1 && (
                                     <a onClick={() => setIsEdit(false)} className="mt-5 text-white text-center rounded-md py-2 bg-red-500">Cancelar</a>
                                 )}
@@ -103,32 +132,30 @@ function Painel() {
                                     <a onClick={() => setIsEdit(true)} className="mt-5 text-white text-center rounded-md py-2 bg-gray-500 font-medium hover:bg-gray-300 border-gray-300 cursor-pointer">Editar</a>
                                     <a onClick={() => setIsEdit(true)} className="mt-5 text-white text-center rounded-md py-2 bg-red-500 font-medium hover:bg-red-300 border-gray-300 cursor-pointer">Cancelar</a>
                                 </>
-                            )
-                        }
-
+                            )}
 
                     </div>
                 </div>
             )}
 
-            <a onClick={() => { setModal(true); setIsEdit(true) }} className="rounded-full bg-primary text-white px-4 py-3 fixed bottom-0 right-0"> + </a>
+            <a onClick={() => { setModal(true); setIsEdit(true) }} className="rounded-full bg-primary text-white px-4 py-3 fixed bottom-0 right-0 cursor-pointer"> + </a>
 
             <table>
                 <thead>
-
+                <tr>
                     <th>Nome</th>
                     <th>Email</th>
                     <th>Ações</th>
-
+                </tr>
                 </thead>
                 <tbody id="listUsers" className="font-secundary">
                     {users.map((u, i) => (
-                        <tr>
+                        <tr key={u.id}>
                             <td> {u.nome} </td>
                             <td> {u.email} </td>
                             <td>
-                                <a className='cursor-pointer px-3 mx-4 hover:bg-green-300 text-white rounded-full bg-green-500 transition-colors' onClick={() => updateUser(i)}> V </a>
-                                <a className='cursor-pointer px-3 mx-4 hover:bg-red-300 text-white rounded-full bg-red-500 transition-colors' onClick={() => deletUser(i)}> X </a>
+                                <a className='cursor-pointer px-3 mx-4 hover:bg-green-300 text-white rounded-full bg-green-500 transition-colors' onClick={() => updateUser(u)}> V </a>
+                                <a className='cursor-pointer px-3 mx-4 hover:bg-red-300 text-white rounded-full bg-red-500 transition-colors' onClick={() => deletUser(u)}> X </a>
                             </td>
                         </tr>
                     ))}
@@ -137,6 +164,5 @@ function Painel() {
             </table>
 
         </div>
-    )
-}
+    )}
 export default Painel;
