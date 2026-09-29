@@ -1,42 +1,20 @@
 import { Link, useNavigate } from 'react-router'
 import { useState } from 'react';
+import { Template } from '../components/Template';
 
 function Home() {
-
-const [email, setEmail] = useState ("");
-const [pass, setPass] = useState ("");
-const [alert, setAlert] = useState ("");
-const nav = useState ("");
-const [logU, setLogU] = useState (false);
-
-function handleLogin() {
-    const users = JSON.parse(localStorage,getItem('users'))
-    let user = users.find(u => {
-        return u.email == email
-    })
-}
-
     return ( 
+      <>
+      <Template>
+        <main className='p-8'> ...
+       </main>
+      </Template>
+      
 
 <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       
       {/* 1. NAV BAR (Fixa e Elegante) */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-200">
-        <div className="flex items-center gap-8">
-          {/* Logo fictícia ou nome do sistema */}
-          <span className="text-xl font-black tracking-tight text-gray-900">
-            Safe<span className="text-red-600">Work</span>
-          </span>
-          <div className="hidden md:flex items-center gap-6">
-            <a href="#about" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">Sobre</a>
-            <a href="#prices" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">Preços</a>
-            <a href="#benefits" className="text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">Benefícios</a>
-          </div>
-        </div>
-        <Link to="/auth" className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 hover:shadow transition-all">
-          Acessar Sistema
-        </Link>
-      </nav>
+      
 
       {/* Espaçador para o conteúdo não sumir sob a navbar fixa */}
       <div className="pt-24"></div>
@@ -169,8 +147,8 @@ function handleLogin() {
       </section>
 
     </div>
+    </>
   );
 }
-
 
                 export default Home;

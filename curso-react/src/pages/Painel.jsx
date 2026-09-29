@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
+import { ToastSucess } from '../components/Toast';
 
 function Painel() {
     const [modal, setModal] = useState(false) //bollean
@@ -10,7 +11,7 @@ function Painel() {
     const [index, setIndex] = useState(-1)
 
     const [spiner, setSpiner] = useState(false)
-    const [msg, SetMsg] = useState("")
+    const [msg, setMsg] = useState("")
 
     useEffect(
         () => {
@@ -70,7 +71,7 @@ function Painel() {
             password: user.password
         });
 
-        if (authError) {
+        if(authError){
             setMsg(authError.message)
             setSpiner(false)
             return;
@@ -169,7 +170,6 @@ function Painel() {
                                     {spiner ? '...' : 'Salvar'}
                                 </a>
 
-                                {msg}
                             </form>) : //else 
                             (
                                 <>
@@ -185,7 +185,7 @@ function Painel() {
                 </div>
             )}
 
-            <a onClick={() => { setModal(true); setIsEdit(true) }} className="rounded-full bg-primary text-white px-4 py-3 fixed bottom-0 right-0 cursor-pointer"> + </a>
+            <a onClick={() => { setModal(true); setIsEdit(true); setMsg('') }} className="rounded-full bg-primary text-white px-4 py-3 fixed bottom-0 right-0 cursor-pointer"> + </a>
 
             <table>
                 <thead>
@@ -209,6 +209,8 @@ function Painel() {
 
                 </tbody>
             </table>
+
+            <ToastSucess msg={msg} />
 
         </div>
     )
