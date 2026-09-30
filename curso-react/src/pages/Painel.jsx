@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { ToastSucess } from '../components/Toast';
+import { Template } from '../components/Template';
 
 function Painel() {
     const [modal, setModal] = useState(false) //bollean
@@ -109,7 +110,7 @@ function Painel() {
     }
 
     return (
-
+<Template>
         <div>
             <h3>Bem Vindo {logged?.nome} !</h3>
 
@@ -213,6 +214,7 @@ function Painel() {
             <ToastSucess msg={msg} />
 
         </div>
+        </Template>
     )
 }
 export default Painel;

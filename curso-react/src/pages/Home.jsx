@@ -1,5 +1,3 @@
-import { Link, useNavigate } from 'react-router'
-import { useState } from 'react';
 import { Template } from '../components/Template';
 
 function Home() {
@@ -14,7 +12,6 @@ function Home() {
 <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
       
       {/* 1. NAV BAR (Fixa e Elegante) */}
-      
 
       {/* Espaçador para o conteúdo não sumir sob a navbar fixa */}
       <div className="pt-24"></div>

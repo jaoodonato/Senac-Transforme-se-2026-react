@@ -4,13 +4,14 @@ import bgauth from "../assets/bgauth.png";
 import { supabase  } from '../../utils/supabase';
 import { Template } from '../components/Template';
 
+
 function Auth() {
 
     /* const [variavel, funcaoAlteraVariavel] = useState('valor inicial'); */
 
     const [email, setEmail] = useState("");
     const [pass, setPass] = useState("");
-    const [mensagem, setMensagem] = useToast("");
+    const [msg, setMsg] = useState("");
     
     const nav = useNavigate();
 

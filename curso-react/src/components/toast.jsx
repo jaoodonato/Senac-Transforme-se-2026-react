@@ -1,25 +1,41 @@
 import { useState, useEffect } from "react";
 
-export function useToast() {
-    const [mensagem, setMensagem] = useState('');
-    return { mensagem, setMensagem };
+export function useToast(){
+    const [msg, setMsg] = useState('');
+
+    return {
+        msg,
+        setMsg
+    };
 }
 
-export function ToastSucess({ mensagem, setMensagem }){
-   useEffect(() => {
-    if (mensagem == '') return;
+export function ToastSucess({msg, setMsg}){
+    useEffect(() => {
+        if(msg == '') return;
 
-    const timer = setTimeout (() => {
-        setMensagem('');
-    }, 5000);
-    return () => clearTimeout(timer);
-    }, [mensagem, setMensagem]);
+        const timer = setTimeout(() => {
+            setMsg('');
+        }, 5000);
 
-    if(mensagem == '') return;
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [msg, setMsg]);
 
-    return (
-        <div className="'fixed top-5 right-5 z-[60] bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg"> 
-        <p>{mensagem}</p>
+    if(msg == '') return;
+
+    return(
+        <div className="fixed top-5 left-5 w-sm bg-green-500 z-50">
+            {msg}
         </div>
     );
+}
+
+export function ToastDanger({msg}){
+
+}
+
+
+export function ToastWarning({msg}){
+
 }
